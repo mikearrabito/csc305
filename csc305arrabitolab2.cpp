@@ -240,14 +240,15 @@ void reset(process* procs[], partition* parts[]) {
 }
 
 int main(){
-    partition* parts[4];
-    process* procs[5]; // Holds job number, status, partition used
-
+    
     cout << "Input number of processes: ";
     cin >> numprocs;
 
     cout << "Input number of partitions: ";
     cin >> numparts;
+
+    partition* parts[numparts];
+    process* procs[numprocs]; // Holds job number, status, partition used
 
     int size = 0;
     for (int i = 0; i < numparts; i++) {
