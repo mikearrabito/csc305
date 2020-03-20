@@ -7,6 +7,9 @@
 
 using namespace std;
 
+int numprocs = 0;
+int numparts = 0;
+
 struct process{
     string name;
     string status;
@@ -27,7 +30,7 @@ struct process{
         status = s;
         part = p;
         memNeeded = m;
-        waste = -1;
+        waste = -1; 
     }
 };
 
@@ -50,7 +53,7 @@ struct partition {
 
 int calcWaste(process* p[]) {
     int sum = 0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < numprocs; i++) {
         if (p[i]->waste > 0) {
             sum += p[i]->waste;
         }
@@ -59,7 +62,7 @@ int calcWaste(process* p[]) {
 }
 
 void printResults(process* procs[], partition* parts[]) {
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < numprocs; i++) {
         string w = to_string(procs[i]->waste);
         if (procs[i]->waste == -1) {
             w = "N\\A";
@@ -77,9 +80,9 @@ void printResults(process* procs[], partition* parts[]) {
 
 void firstfit(process* job[], partition* part[]){
     // For each job search for first partition with enough space
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < numprocs; i++) {
         // For each job
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < numparts; j++) {
             // for each partition
             if (job[i]->memNeeded <= part[j]->size && part[j]->inUse!=true) {
                 // If first partition encountered has enough space, give partition that job
@@ -92,7 +95,7 @@ void firstfit(process* job[], partition* part[]){
         }
     }
 
-    cout << "First Fit:" << endl;
+    cout << endl << "First Fit:" << endl;
     printResults(job, part);
 
     return;
@@ -103,8 +106,8 @@ void nextfit(process* job[], partition* part[]) {
 
     int j = 0;
     int count = 0;
-    for (int i = 0; i < 5; i++) {
-        while(j < 4 && count < 4) {
+    for (int i = 0; i < numprocs; i++) {
+        while(j < numparts && count < numparts) {
             // will go through the 4 total partitions we have
             // count variable added to stop loop once we have checked all 4 partitions
             if (job[i]->memNeeded <= part[j]->size && part[j]->inUse != true) {
@@ -129,10 +132,10 @@ void nextfit(process* job[], partition* part[]) {
 void bestfit(process* job[], partition* part[]) {
     // assign to first possible candidate
     // update when finding another part that is < current num but still > memneeded
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < numprocs; i++) {
         int current = 99999;
         int bestfit = -1;
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < numparts; j++) {
             if (job[i]->memNeeded <= part[j]->size && part[j]->inUse != true && part[j]->size < current) {
                 
                 bestfit = j;
@@ -158,10 +161,10 @@ void worstfitfixed(process* job[], partition* part[]) {
     // similar to bestfit, but select largest instead of smallest available partition
     // still checking if partition is large enough for job, etc
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < numprocs; i++) {
         int current = 0;
         int worstfit = -1;
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < numparts; j++) {
             if (job[i]->memNeeded <= part[j]->size && part[j]->inUse != true && part[j]->size > current) {
 
                 worstfit = j;
@@ -188,10 +191,10 @@ void worstfitfixed(process* job[], partition* part[]) {
 void worstfitdynamic(process* job[], partition* part[]) {
 
     int extra = 0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < numprocs; i++) {
         int current = 0;
         int worstfit = -1;
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < numparts; j++) {
             if (job[i]->memNeeded <= part[j]->size && part[j]->inUse != true && part[j]->size > current) {
 
                 worstfit = j;
@@ -225,12 +228,12 @@ void worstfitdynamic(process* job[], partition* part[]) {
 
 
 void reset(process* procs[], partition* parts[]) {
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < numprocs; i++) {
         procs[i]->status = "Waiting";
         procs[i]->waste = -1;
         procs[i]->part = -1;
     }
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < numparts; i++) {
         parts[i]->inUse = false;
     }
     return;
@@ -238,25 +241,26 @@ void reset(process* procs[], partition* parts[]) {
 
 int main(){
     partition* parts[4];
-
-    for (int i = 0; i < 4; i++) {
-        parts[i] = new partition("P" + to_string(i + 1), 0);
-    }
-    parts[0]->size = 100;
-    parts[1]->size = 300;
-    parts[2]->size = 200;
-    parts[3]->size = 450;
-
     process* procs[5]; // Holds job number, status, partition used
-    for (int i = 0; i < 5; i++) {
-        procs[i] = new process("J" + to_string(i + 1), "Waiting", -1, 100);
+
+    cout << "Input number of processes: ";
+    cin >> numprocs;
+
+    cout << "Input number of partitions: ";
+    cin >> numparts;
+
+    int size = 0;
+    for (int i = 0; i < numparts; i++) {
+        cout << "Input partition " << i + 1 << " size: ";
+        cin >> size;
+        parts[i] = new partition("P" + to_string(static_cast<long long>(i + 1)), size);
     }
-    // Values given from assignment
-    procs[0]->memNeeded = 200;
-    procs[1]->memNeeded = 100;
-    procs[2]->memNeeded = 300;
-    procs[3]->memNeeded = 300;
-    procs[4]->memNeeded = 200;
+
+    for (int i = 0; i < numprocs; i++) {
+        cout << "Input process " << i + 1 << " memory needed: ";
+        cin >> size;
+        procs[i] = new process("J" + to_string(static_cast<long long>(i + 1)), "Waiting", -1, size);
+    }
 
     firstfit(procs, parts);
 
