@@ -7,8 +7,8 @@
 
 using namespace std;
 
-int numprocs = 0;
-int numparts = 0;
+int numprocs = 10;
+int numparts = 10;
 
 struct process{
     string name;
@@ -247,8 +247,8 @@ int main(){
     cout << "Input number of partitions: ";
     cin >> numparts;
 
-    partition* parts[numparts];
-    process* procs[numprocs]; // Holds job number, status, partition used
+    partition* parts[10];
+    process* procs[10]; 
 
     int size = 0;
     for (int i = 0; i < numparts; i++) {
